@@ -1,6 +1,6 @@
 {
   "name": "@osamahalhwawi/wa-client",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "description": "Typed, zero-dependency client for the WhatsApp Business Cloud API — messages, media, templates, webhooks and Embedded Signup.",
   "license": "MPL-2.0",
   "author": "Osamah Alhwawi",
