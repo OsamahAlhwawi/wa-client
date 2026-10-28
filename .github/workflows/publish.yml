@@ -1,0 +1,30 @@
+name: Publish to npm
+
+# Runs when you publish a GitHub Release (e.g. tag v0.2.0).
+# Uses npm Trusted Publishing (OIDC): no NPM_TOKEN secret needed.
+# Configure it once on npmjs.com → your package → Settings → Trusted Publisher.
+
+on:
+  release:
+    types: [published]
+
+permissions:
+  contents: read
+  id-token: write # required for trusted publishing + provenance
+
+jobs:
+  publish:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+          registry-url: https://registry.npmjs.org
+          cache: npm
+      - run: npm install -g npm@latest # trusted publishing needs npm >= 11.5
+      - run: npm ci
+      - run: npm run typecheck
+      - run: npm test
+      - run: npm run build
+      - run: npm publish --access public

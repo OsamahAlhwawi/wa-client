@@ -1,0 +1,73 @@
+{
+  "name": "@osamahalhwawi/wa-client",
+  "version": "0.1.0",
+  "description": "Typed, zero-dependency client for the WhatsApp Business Cloud API — messages, media, templates, webhooks and Embedded Signup.",
+  "license": "MPL-2.0",
+  "author": "Osamah Alhwawi",
+  "homepage": "https://osamahalhwawi.github.io/wa-client/",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/OsamahAlhwawi/wa-client.git"
+  },
+  "bugs": {
+    "url": "https://github.com/OsamahAlhwawi/wa-client/issues"
+  },
+  "keywords": [
+    "whatsapp",
+    "whatsapp-cloud-api",
+    "whatsapp-business",
+    "cloud-api",
+    "meta",
+    "graph-api",
+    "webhook",
+    "typescript"
+  ],
+  "type": "module",
+  "main": "./dist/index.cjs",
+  "module": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "exports": {
+    ".": {
+      "import": {
+        "types": "./dist/index.d.ts",
+        "default": "./dist/index.js"
+      },
+      "require": {
+        "types": "./dist/index.d.cts",
+        "default": "./dist/index.cjs"
+      }
+    },
+    "./package.json": "./package.json"
+  },
+  "files": [
+    "dist",
+    "README.md",
+    "LICENSE",
+    "CHANGELOG.md"
+  ],
+  "sideEffects": false,
+  "engines": {
+    "node": ">=22"
+  },
+  "scripts": {
+    "build": "tsup",
+    "dev": "tsup --watch",
+    "typecheck": "tsc --noEmit",
+    "test": "vitest run",
+    "test:watch": "vitest",
+    "docs:dev": "vitepress dev docs",
+    "docs:build": "vitepress build docs",
+    "docs:preview": "vitepress preview docs",
+    "prepublishOnly": "npm run typecheck && npm test && npm run build"
+  },
+  "publishConfig": {
+    "access": "public"
+  },
+  "devDependencies": {
+    "@types/node": "^24.19.2",
+    "tsup": "^9.0.0",
+    "typescript": "~5.9.3",
+    "vitepress": "^1.6.4",
+    "vitest": "^5.0.5"
+  }
+}
