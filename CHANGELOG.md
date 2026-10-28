@@ -2,6 +2,10 @@
 
 All notable changes to this project are documented here. This project follows [Semantic Versioning](https://semver.org/).
 
+## 0.1.1
+
+- Published from GitHub Actions via npm Trusted Publishing, with [provenance](https://docs.npmjs.com/generating-provenance-statements) attesting the package was built from this repository.
+
 ## 0.1.0 — Initial release
 
 - `WhatsAppClient` for messages (text, media, location, contacts, reactions, interactive buttons/list/CTA, templates), read receipts with typing indicator, bulk template sending with bounded concurrency.
