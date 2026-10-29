@@ -31,6 +31,7 @@ export default defineConfig({
           { text: "Media", link: "/guide/media" },
           { text: "Templates & Bulk", link: "/guide/templates" },
           { text: "Webhooks", link: "/guide/webhooks" },
+          { text: "Phone Number & Profile", link: "/guide/phone-profile" },
           { text: "Error Handling", link: "/guide/errors" },
           { text: "Embedded Signup", link: "/guide/embedded-signup" },
         ],

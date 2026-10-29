@@ -59,6 +59,8 @@ Requires `wabaId` in the config.
 
 ## Phone number & profile
 
+See the [Phone Number & Profile guide](/guide/phone-profile) for examples.
+
 | Method | Returns |
 | --- | --- |
 | `getBusinessProfile(opts?)` | `BusinessProfile` |
@@ -69,6 +71,8 @@ Requires `wabaId` in the config.
 | `getMessagingLimit(opts?)` | `string`, e.g. `"TIER_1K"` |
 
 ## QR codes
+
+See [QR codes](/guide/phone-profile#qr-codes) in the guide.
 
 | Method | Returns |
 | --- | --- |
