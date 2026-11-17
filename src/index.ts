@@ -38,6 +38,7 @@ export type {
   CreateTemplateResponse,
   SendTemplatePayload,
   TemplateSendComponent,
+  TemplateSendButton,
   TemplateHeaderParam,
   TemplateBodyParam,
   TemplateButtonParam,

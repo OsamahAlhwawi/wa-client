@@ -18,8 +18,8 @@ See [Configuration](/guide/configuration).
 | `sendInteractiveButtons(to, payload, opts?)` | `SendMessageResponse` | `{ body, buttons[≤3], header?, footer? }` |
 | `sendInteractiveList(to, payload, opts?)` | `SendMessageResponse` | `{ body, buttonText, sections, header?, footer? }` |
 | `sendCtaUrl(to, payload, opts?)` | `SendMessageResponse` | `{ body, buttonText, url, header?, footer? }` |
-| `sendTemplate(to, template, opts?)` | `SendMessageResponse` | `{ name, language, components? }` |
-| `sendTemplateBulk(recipients, template, opts?)` | `BulkSendResult` | `opts`: `concurrency`, `components`, `onProgress`, `signal` |
+| `sendTemplate(to, template, opts?)` | `SendMessageResponse` | `{ name, language, components?, buttons? }`. See [hidden button payloads](/guide/templates#buttons-with-a-hidden-payload) |
+| `sendTemplateBulk(recipients, template, opts?)` | `BulkSendResult` | `opts`: `concurrency`, `components`, `buttons`, `onProgress`, `signal` |
 | `markAsRead(messageId, opts?)` | `{ success }` | `opts.typingIndicator` |
 | `sendRaw(to, payload, opts?)` | `SendMessageResponse` | Escape hatch for any message type |
 

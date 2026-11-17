@@ -2,6 +2,12 @@
 
 All notable changes to this project are documented here. This project follows [Semantic Versioning](https://semver.org/).
 
+## 0.2.0
+
+- `sendTemplate` accepts `buttons`: typed values for a template's buttons. Use `{ type: "quick_reply", index, payload }` for a payload the customer doesn't see, which comes back as `button.payload` in the webhook. `url` and `copy_code` are also supported.
+- `sendTemplateBulk` accepts per-recipient `buttons` (Map or object keyed by phone).
+- New exported type: `TemplateSendButton`.
+
 ## 0.1.1
 
 - Published from GitHub Actions via npm Trusted Publishing, with [provenance](https://docs.npmjs.com/generating-provenance-statements) attesting the package was built from this repository.

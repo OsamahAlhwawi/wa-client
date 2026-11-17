@@ -104,7 +104,7 @@ async function handle(event: WebhookEvent) {
           if (message.interactive.type === "list_reply") console.log(message.interactive.list_reply.id);
           break;
         case "button": // quick reply on a template
-          console.log(message.button.payload);
+          console.log(message.button.text, message.button.payload); // payload: see Templates → hidden payload
           break;
         case "location":
           console.log(message.location.latitude, message.location.longitude);

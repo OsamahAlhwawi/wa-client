@@ -32,6 +32,55 @@ await wa.sendTemplate("966500000000", {
 
 For templates created with named parameters, add `parameter_name` to each body parameter.
 
+## Buttons with a hidden payload
+
+Each QUICK_REPLY button on a template can carry a `payload`. The customer only sees the button text. When they tap it, the payload comes back in your webhook, so you can tell which campaign, order or customer the tap belongs to.
+
+```ts
+await wa.sendTemplate("966500000000", {
+  name: "spring_offer",
+  language: "ar",
+  components: [{ type: "body", parameters: [{ type: "text", text: "Sara" }] }],
+  buttons: [
+    { type: "quick_reply", index: 0, payload: "offer_42:interested" }, // "مهتم"
+    { type: "quick_reply", index: 1, payload: "offer_42:stop" },       // "إيقاف"
+  ],
+});
+```
+
+- `index` is the button's 0-based position in the template's BUTTONS component.
+- The template must have been created with QUICK_REPLY buttons. The button text comes from the approved template and can't change at send time. Only the payload can.
+- `url` (`{ type: "url", index, text }`) and `copy_code` (`{ type: "copy_code", index, couponCode }`) buttons use the same `buttons` list.
+- `buttons` is appended after `components`. Don't give the same `index` in both, or twice: that throws a `TypeError` before anything is sent.
+
+When the customer taps a button, the message arrives with `type: "button"`:
+
+```ts
+import { parseWebhook } from "@osamahalhwawi/wa-client";
+
+for (const event of parseWebhook(req.body)) {
+  if (event.type === "message" && event.message.type === "button") {
+    event.message.button.text;    // "مهتم"  (what the customer saw)
+    event.message.button.payload; // "offer_42:interested"  (hidden value you sent)
+  }
+}
+```
+
+For a different payload per recipient in a bulk send, pass `buttons` keyed by phone. It replaces `template.buttons` for that recipient:
+
+```ts
+await wa.sendTemplateBulk(
+  ["966500000001", "966500000002"],
+  { name: "spring_offer", language: "ar", buttons: [{ type: "quick_reply", index: 0, payload: "offer_42" }] },
+  {
+    buttons: {
+      "966500000001": [{ type: "quick_reply", index: 0, payload: "offer_42:client_17" }],
+      "966500000002": [{ type: "quick_reply", index: 0, payload: "offer_42:client_18" }],
+    },
+  },
+);
+```
+
 ## Bulk sending
 
 `sendTemplateBulk` sends to many recipients with bounded concurrency. It never throws for individual failures. Inspect the results instead.

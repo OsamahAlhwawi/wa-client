@@ -92,6 +92,93 @@ describe("Templates", () => {
   });
 });
 
+describe("Template buttons", () => {
+  const sendBody = (calls: { body: unknown }[], i = 0) => (calls[i]!.body as any).template;
+
+  it("maps quick-reply payloads to button components after the raw components", async () => {
+    const { fetch, calls } = mockFetch(sent());
+    await createClient(fetch).sendTemplate("966500000000", {
+      name: "spring_offer",
+      language: "ar",
+      components: [{ type: "body", parameters: [{ type: "text", text: "Sara" }] }],
+      buttons: [
+        { type: "quick_reply", index: 0, payload: "offer_42:yes" },
+        { type: "quick_reply", index: 1, payload: "offer_42:stop" },
+      ],
+    });
+
+    expect(sendBody(calls).components).toEqual([
+      { type: "body", parameters: [{ type: "text", text: "Sara" }] },
+      { type: "button", sub_type: "quick_reply", index: "0", parameters: [{ type: "payload", payload: "offer_42:yes" }] },
+      { type: "button", sub_type: "quick_reply", index: "1", parameters: [{ type: "payload", payload: "offer_42:stop" }] },
+    ]);
+  });
+
+  it("maps url and copy_code buttons", async () => {
+    const { fetch, calls } = mockFetch(sent());
+    await createClient(fetch).sendTemplate("1", {
+      name: "t",
+      language: "en",
+      buttons: [
+        { type: "url", index: 0, text: "1042" },
+        { type: "copy_code", index: 1, couponCode: "SAVE10" },
+      ],
+    });
+
+    expect(sendBody(calls).components).toEqual([
+      { type: "button", sub_type: "url", index: "0", parameters: [{ type: "text", text: "1042" }] },
+      { type: "button", sub_type: "copy_code", index: "1", parameters: [{ type: "coupon_code", coupon_code: "SAVE10" }] },
+    ]);
+  });
+
+  it("leaves the request unchanged when no buttons are given", async () => {
+    const { fetch, calls } = mockFetch(sent());
+    await createClient(fetch).sendTemplate("1", { name: "t", language: "en", buttons: [] });
+    expect(sendBody(calls)).not.toHaveProperty("components");
+  });
+
+  it("rejects a duplicate button index without sending", async () => {
+    const { fetch, calls } = mockFetch(sent());
+    const wa = createClient(fetch);
+
+    await expect(
+      wa.sendTemplate("1", {
+        name: "t",
+        language: "en",
+        buttons: [
+          { type: "quick_reply", index: 0, payload: "a" },
+          { type: "quick_reply", index: 0, payload: "b" },
+        ],
+      }),
+    ).rejects.toThrow(TypeError);
+
+    await expect(
+      wa.sendTemplate("1", {
+        name: "t",
+        language: "en",
+        components: [{ type: "button", sub_type: "quick_reply", index: "1", parameters: [{ type: "payload", payload: "x" }] }],
+        buttons: [{ type: "quick_reply", index: 1, payload: "y" }],
+      }),
+    ).rejects.toThrow(/index 1/);
+
+    expect(calls).toHaveLength(0);
+  });
+
+  it("bulk: per-recipient buttons override template.buttons", async () => {
+    const { fetch, calls } = mockFetch(sent());
+    await createClient(fetch).sendTemplateBulk(
+      ["a", "b"],
+      { name: "t", language: "en", buttons: [{ type: "quick_reply", index: 0, payload: "default" }] },
+      { buttons: { b: [{ type: "quick_reply", index: 0, payload: "client_b" }] } },
+    );
+
+    const payloadFor = (to: string) =>
+      (calls.find((c) => (c.body as { to: string }).to === to)!.body as any).template.components[0].parameters[0].payload;
+    expect(payloadFor("a")).toBe("default");
+    expect(payloadFor("b")).toBe("client_b");
+  });
+});
+
 describe("Bulk send", () => {
   it("keeps input order, reports partial failures and per-recipient components", async () => {
     const { fetch, calls } = mockFetch((call) => {

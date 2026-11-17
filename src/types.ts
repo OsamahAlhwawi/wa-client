@@ -284,10 +284,29 @@ export interface TemplateSendComponent {
   index?: string;
 }
 
+/**
+ * Send-time value for one of the template's buttons.
+ * `index` is the button's 0-based position in the template's BUTTONS component.
+ *
+ * - `quick_reply`: `payload` is hidden from the customer (they only see the button text).
+ *   When they tap the button it comes back in the webhook as `ButtonMessage.button.payload`.
+ * - `url`: `text` is appended to the button's dynamic URL.
+ * - `copy_code`: the coupon code the customer copies.
+ */
+export type TemplateSendButton =
+  | { type: "quick_reply"; index: number; payload: string }
+  | { type: "url"; index: number; text: string }
+  | { type: "copy_code"; index: number; couponCode: string };
+
 export interface SendTemplatePayload {
   name: string;
   language: string;
   components?: TemplateSendComponent[];
+  /**
+   * Button values, e.g. a hidden payload per QUICK_REPLY button.
+   * Sent after `components`. Don't give the same `index` here and in a raw `button` component.
+   */
+  buttons?: TemplateSendButton[];
 }
 
 // ─── Template Analytics ──────────────────────────────────────────
@@ -342,6 +361,11 @@ export interface BulkSendOptions extends RequestOptions {
   concurrency?: number;
   /** Per-recipient components (personalized variables), keyed by phone number */
   components?: Map<string, TemplateSendComponent[]> | Record<string, TemplateSendComponent[]>;
+  /**
+   * Per-recipient button values (e.g. a hidden quick-reply payload carrying the customer ID),
+   * keyed by phone number. Replaces `template.buttons` for that recipient.
+   */
+  buttons?: Map<string, TemplateSendButton[]> | Record<string, TemplateSendButton[]>;
   /** Called after each recipient finishes — useful for progress bars */
   onProgress?: (result: BulkSendItemResult, completed: number, total: number) => void;
 }

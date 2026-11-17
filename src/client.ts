@@ -28,6 +28,7 @@ import type {
   CreateTemplateResponse,
   SendTemplatePayload,
   TemplateSendComponent,
+  TemplateSendButton,
   TemplateAnalyticsRequest,
   TemplateAnalyticsResponse,
   BulkSendOptions,
@@ -197,13 +198,27 @@ export class WhatsAppClient {
   }
 
   /**
-   * Send a template message to a single recipient
+   * Send a template message to a single recipient.
+   *
+   * @example Quick-reply buttons with a hidden payload (returned as `button.payload` in the webhook)
+   * await wa.sendTemplate("966500000000", {
+   *   name: "spring_offer",
+   *   language: "ar",
+   *   buttons: [
+   *     { type: "quick_reply", index: 0, payload: "offer_42:interested" },
+   *     { type: "quick_reply", index: 1, payload: "offer_42:stop" },
+   *   ],
+   * });
    */
   async sendTemplate(
     to: string,
     template: SendTemplatePayload,
     options?: SendOptions,
   ): Promise<SendMessageResponse> {
+    const components = template.buttons?.length
+      ? mergeButtonComponents(template.components, template.buttons)
+      : template.components;
+
     return this.send(
       to,
       {
@@ -211,7 +226,7 @@ export class WhatsAppClient {
         template: {
           name: template.name,
           language: { code: template.language, policy: "deterministic" },
-          ...(template.components && { components: template.components }),
+          ...(components && { components }),
         },
       },
       options,
@@ -240,13 +255,14 @@ export class WhatsAppClient {
       while (next < total) {
         const index = next++;
         const phone = recipients[index]!;
-        const components = lookupComponents(options?.components, phone);
+        const components = lookupPerRecipient(options?.components, phone);
+        const buttons = lookupPerRecipient(options?.buttons, phone);
         let result: BulkSendItemResult;
 
         try {
           const response = await this.sendTemplate(
             phone,
-            components ? { ...template, components } : template,
+            { ...template, ...(components && { components }), ...(buttons && { buttons }) },
             requestOptions,
           );
           result = { phone, success: true, wamid: response.messages[0]?.id };
@@ -819,12 +835,49 @@ function buildMediaObject(media: MediaPayload): Record<string, string | boolean>
   return base;
 }
 
-function lookupComponents(
-  components: BulkSendOptions["components"],
+function lookupPerRecipient<T>(
+  values: Map<string, T> | Record<string, T> | undefined,
   phone: string,
-): TemplateSendComponent[] | undefined {
-  if (!components) return undefined;
-  return components instanceof Map ? components.get(phone) : components[phone];
+): T | undefined {
+  if (!values) return undefined;
+  return values instanceof Map ? values.get(phone) : values[phone];
+}
+
+/** Turn typed `buttons` into Graph API `button` components and append them to `components`. */
+function mergeButtonComponents(
+  components: TemplateSendComponent[] | undefined,
+  buttons: TemplateSendButton[],
+): TemplateSendComponent[] {
+  const used = new Set(
+    (components ?? []).filter((c) => c.type === "button" && c.index !== undefined).map((c) => Number(c.index)),
+  );
+
+  const buttonComponents = buttons.map((button): TemplateSendComponent => {
+    if (!Number.isInteger(button.index) || button.index < 0) {
+      throw new TypeError(`sendTemplate: button index must be a non-negative integer (got ${button.index}).`);
+    }
+    if (used.has(button.index)) {
+      throw new TypeError(`sendTemplate: button index ${button.index} is given more than once.`);
+    }
+    used.add(button.index);
+
+    const index = String(button.index);
+    switch (button.type) {
+      case "quick_reply":
+        return { type: "button", sub_type: "quick_reply", index, parameters: [{ type: "payload", payload: button.payload }] };
+      case "url":
+        return { type: "button", sub_type: "url", index, parameters: [{ type: "text", text: button.text }] };
+      case "copy_code":
+        return {
+          type: "button",
+          sub_type: "copy_code",
+          index,
+          parameters: [{ type: "coupon_code", coupon_code: button.couponCode }],
+        };
+    }
+  });
+
+  return [...(components ?? []), ...buttonComponents];
 }
 
 function toBlob(file: BinaryInput, mimeType: string): Blob {
